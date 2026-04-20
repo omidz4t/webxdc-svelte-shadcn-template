@@ -39,6 +39,9 @@ This is a **webxdc + SvelteKit + shadcn-svelte template** with CI/release automa
   - https://shadcn-svelte.com/docs/components
 - Prefer reusable UI components under `src/lib/components/ui/*`.
 - Reuse `Button` and `Input` components instead of raw `<button>/<input>` where appropriate.
+- Treat the example app as a functional reference only, not a UI design to copy verbatim.
+- Fit UI decisions to the requested project's goals, audience, and product constraints.
+- Avoid copying demo-specific styling/layout/content choices unless explicitly requested.
 - When introducing a new UI component, add:
   - `src/lib/components/ui/<name>/<name>.svelte`
   - `src/lib/components/ui/<name>/index.ts`
@@ -53,6 +56,7 @@ This is a **webxdc + SvelteKit + shadcn-svelte template** with CI/release automa
   - `importFiles()` example
   - realtime native + emulation mode
   - `@webxdc/realtime` helper example
+- Keep example behavior intact even when adapting the UI for real project needs.
 - If payload shape changes, update both code and docs.
 
 ## Build/test requirements

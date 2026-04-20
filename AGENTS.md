@@ -36,6 +36,9 @@ Required reading before making changes:
   - https://shadcn-svelte.com/docs/components
 - Use reusable UI components under `src/lib/components/ui/*`.
 - Prefer existing `Button` and `Input` components over raw HTML controls when appropriate.
+- Treat the example app as an implementation reference, not a fixed visual design to clone.
+- Build UI to match the user's requested product goals and brand/density/content needs.
+- Do not copy demo-specific layout, spacing, color, copy, or component composition unless explicitly requested.
 - For new components, create:
   - `src/lib/components/ui/<name>/<name>.svelte`
   - `src/lib/components/ui/<name>/index.ts`
@@ -51,6 +54,7 @@ Keep template examples functional and documented:
 - `importFiles()` usage
 - realtime native + emulation mode
 - `@webxdc/realtime` helper example
+- Preserve example behavior while allowing project-specific UI presentation.
 
 ## Build and verification requirements
 

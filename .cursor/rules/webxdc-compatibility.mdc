@@ -41,6 +41,9 @@ Before coding, read and follow:
   - https://shadcn-svelte.com/docs/components
 - Prefer reusable components in `src/lib/components/ui/*`.
 - Use existing `Button` and `Input` components where applicable.
+- Treat `src/routes/example_+page.svelte` and other demos as behavior references, not visual blueprints.
+- Adapt UI/UX to each request's product goals instead of reproducing demo look-and-feel by default.
+- Do not mirror demo-specific styling/content hierarchy unless user explicitly asks for it.
 - For any new UI component:
   - add `src/lib/components/ui/<name>/<name>.svelte`
   - add `src/lib/components/ui/<name>/index.ts`
@@ -56,6 +59,7 @@ Do not break the built-in demos in `src/routes/+page.svelte`:
 - `importFiles()` example
 - realtime native + emulation
 - `@webxdc/realtime` helper example
+- Keep functional parity for examples while allowing project-specific UI changes.
 
 ## Build and quality gates
 
