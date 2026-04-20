@@ -1,7 +1,7 @@
 {
 	"name": "webxdc-svelte-shadcn-template",
 	"private": true,
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"type": "module",
 	"scripts": {
 		"dev": "concurrently -k \"bun run dev:web\" \"bun run dev:webxdc\"",
