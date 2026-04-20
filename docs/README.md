@@ -1,169 +1,113 @@
-# webxdc-svelte-shadcn-template docs
+# Project Docs
 
-This folder documents the template architecture, features, and operational behavior.
+This template already solves the annoying parts of webxdc app setup: local dev shim, typed host API helpers, shared-state demo, and packaging scripts.
 
-Additional UI-specific guide:
+If you want a fast map of the project before you start editing, read this file once.
 
-- `docs/SHADCN_SVELTE.md` (component usage, catalog reference, and AI prompt guidance)
+## What You Get Out of the Box
 
-## 1) What this template includes
+- `src/routes/+page.svelte`: the main demo app with shared counter, chat, import/export, and realtime examples.
+- `src/lib/webxdc.ts`: typed wrappers for `sendUpdate`, `setUpdateListener`, `sendToChat`, `importFiles`, and realtime channels.
+- `src/lib/index.ts`: `$lib` barrel file (currently a placeholder, ready for shared exports).
+- `static/webxdc.js`: browser-only shim so the app works outside a messenger during local development.
+- `src/routes/+layout.ts`: `prerender = true` for static output.
+- `src/routes/+layout.svelte` and `src/routes/layout.css`: app shell and global Tailwind setup.
+- `src/routes/example_+page.svelte`: alternate demo page kept as a reference copy.
 
-- Svelte 5 + SvelteKit static output.
-- webxdc API helpers in `src/lib/webxdc.ts`.
-- Shared-state examples based on `sendUpdate()` + `setUpdateListener()`.
-- Realtime examples:
-  - native `joinRealtimeChannel()`
-  - dev/emulation fallback through shared updates.
-- High-level realtime/presence example using `@webxdc/realtime`.
-- `sendToChat()` text and file export examples.
-- `importFiles()` example with file filter support.
-- CI + semantic-release automatic versioning and GitHub release assets.
+## How the Main Demo Works
 
-## 2) Core app architecture
+The main page models all shared changes as operations with metadata:
 
-Main demo page: `src/routes/+page.svelte`
+- `meta.actor`: sender address (`selfAddr`)
+- `meta.lamport`: monotonic logical time
+- `meta.opId`: unique operation id
 
-- Uses operation-style payloads with metadata:
-  - `meta.actor`
-  - `meta.lamport`
-  - `meta.opId`
-- Uses deterministic merge rules for local convergence.
-- Tracks participants by address to support mentions/replies via `notify`.
+Payload types used in the demo:
 
-### Operation payload types
+- `counter-inc`: conflict-safe counter increments
+- `chat-message`: shared chat messages with optional `replyTo`
+- `realtime-compat`: fallback payload for hosts without native realtime
 
-- `counter-inc`: commutative increment operation.
-- `chat-message`: chat message operation with optional `replyTo`.
-- `realtime-compat`: fallback payload for realtime emulation in hosts without native realtime.
+The merge strategy is simple and practical:
 
-## 3) Shared-state conflict strategy
+- ignore duplicate `opId`s
+- keep Lamport monotonic locally
+- sort chat by `(lamport desc, opId)` for stable ordering
 
-The template uses a lightweight Lamport-style strategy for deterministic ordering and idempotency:
+## sendUpdate Metadata (What It Is Used For)
 
-- each local op has an incrementing Lamport number
-- each op has a unique `opId`
-- already-seen `opId`s are ignored
-- chat display ordering uses `(lamport desc, opId)` for stable rendering
+The template actively uses optional metadata fields when sending updates:
 
-This is a practical baseline for smaller collaborative features.
+- `href` to deep-link sections like `#counter`, `#chat`, `#realtime`
+- `document` and `summary` for readable update context
+- `notify` for participant-specific notifications and wildcard fallback
 
-## 4) `sendUpdate()` metadata usage
+This is not just demo fluff. It is a good default pattern for real collaborative apps.
 
-Template uses the optional metadata fields:
+## Mentions and Reply Notifications
 
-- `info`
-- `href` (deep link anchors like `#chat`, `#realtime`)
-- `document`
-- `summary`
-- `notify`
+The chat demo tracks known participant addresses from incoming metadata and builds a `notify` map on send:
 
-Deep-link navigation is handled via hash and scroll behavior in the page.
+- everyone gets a wildcard message via `notify['*']`
+- reply targets get a specific `"Reply from ..."` message
 
-## 5) Mentions/replies with `notify`
+That gives you targeted notifications without losing broad visibility.
 
-The chat flow tracks known participant addresses and supports mention-like replies:
+## Realtime: Two Modes, One Rule
 
-- participant addresses are captured from incoming operation metadata (`meta.actor`)
-- user can choose a reply target from known addresses
-- each `chat-message` send builds `notify` for all known participants
-- if reply target is selected, that address gets a dedicated reply notification text
-- wildcard `*` fallback notification is also included
+The project supports two realtime paths:
 
-Result: if you know an address, you can target it as a reply notification while still notifying all participants.
+1. Native low-level channel with `joinRealtimeChannel()`
+2. Emulated fallback through `sendUpdate()` (for hosts/dev where native channel is unavailable)
 
-## 6) `sendUpdate` limits and queueing
+It also includes an `@webxdc/realtime` helper demo for peer presence and object payload sync.
 
-`src/lib/webxdc.ts` includes a queued sender:
+Important: use one realtime mode at a time. The UI prevents running low-level channel and helper mode together.
 
-- reads `webxdc.sendUpdateInterval` and `webxdc.sendUpdateMaxSize`
-- sends updates in order
-- waits according to interval
-- skips oversized updates with a warning
+## Import and Export
 
-UI displays currently detected limits.
+Import:
 
-## 7) Realtime behavior
+- `importWebxdcFiles()` uses host `importFiles()` when available
+- falls back to `<input type="file">` in unsupported environments
 
-### Native realtime path
+Export:
 
-- Uses `joinRealtimeChannel()` when host supports it.
-- Sends/receives ephemeral low-latency messages.
+- `sendTextToChat(text)` creates a text draft
+- `sendTextFileToChat(name, content)` creates a file draft (example: `shared-state.json`)
 
-### Emulated realtime path
+## Dev Shim Behavior
 
-- Used when native realtime is not available in host.
-- Uses shared `sendUpdate()` transport for developer testing behavior.
+`static/webxdc.js` is a local shim, not production host logic.
 
-## 8) `@webxdc/realtime` integration
+It provides:
 
-The template includes a dedicated helper demo:
+- update listener and history replay
+- `sendToChat` draft simulation
+- `importFiles` picker behavior
+- BroadcastChannel-based realtime shim
+- default limits (`sendUpdateInterval: 250`, `sendUpdateMaxSize: 128000`)
 
-- connect/disconnect lifecycle
-- peer list updates (`onPeersChanged`)
-- presence state advertisement (`setState`)
-- object payload send/receive (`sendPayload`, `onPayload`)
+`.xdc` archives exclude this file because messenger hosts provide `window.webxdc`.
 
-This helper is best suited for small chats.
-For large groups (for example ~200 participants), frequent peer-state ads can overload realtime traffic. Prefer durable `sendUpdate()` for most state in large chats.
+## Build, Package, Release
 
-## 9) File import/export examples
+Common commands:
 
-### Import
+```sh
+bun run dev
+bun run check
+bun run build
+bun run build:xdc
+bun run package:release
+```
 
-- `importWebxdcFiles()` helper.
-- Uses host `importFiles()` when available.
-- Falls back to browser file input for unsupported hosts.
-
-### Export
-
-- `sendTextToChat()` for text message draft.
-- `sendTextFileToChat()` for generated file draft (`shared-state.json` example).
-
-## 10) Dev shim (`static/webxdc.js`)
-
-Used for local browser runs where messenger host API is absent.
-
-Provides:
-
-- `sendUpdate` + `setUpdateListener`
-- `sendToChat`
-- `importFiles`
-- `joinRealtimeChannel` shim
-- `sendUpdateInterval` and `sendUpdateMaxSize` defaults for local testing
-
-Note: this shim is for development only.
-
-## 11) Packaging rules
-
-- `.xdc` packages exclude `webxdc.js` (host provides it at runtime).
-- Local build script:
-  - `bun run build:xdc`
-  - `bun run package:release`
-
-Versioned release artifacts follow:
+Release flow uses semantic-release on `main` and publishes versioned artifacts:
 
 - `webxdc-svelte-shadcn-template_vX-Y-Z.xdc`
 - `webxdc-svelte-shadcn-template_vX-Y-Z.zip`
 
-## 12) CI and automatic versioning
+## Where to Read Next
 
-Configured with semantic-release:
-
-- config file: `.releaserc.json`
-- workflow: `.github/workflows/ci.yml`
-- release branch: `main`
-- tag format: `vX.Y.Z`
-
-On release:
-
-- determines next version from commit history
-- updates `package.json`, `CHANGELOG.md`, `.version`
-- builds versioned assets and publishes to GitHub Release
-
-## 13) Suggested commit conventions
-
-Use conventional commits to drive semantic-release:
-
-- `feat: ...` -> minor
-- `fix: ...` -> patch
-- breaking change footer (`BREAKING CHANGE:`) -> major
+- UI component guidance: `docs/SHADCN_SVELTE.md`
+- Root quick-start and pointers: `README.md`
