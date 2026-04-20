@@ -1,0 +1,89 @@
+description: webxdc project-wide implementation and compatibility requirements
+globs:
+  - "**/*"
+alwaysApply: true
+---
+
+# webxdc template rule
+
+Before coding, read and follow:
+
+- `README.md` -> **Agent Required Reading: webxdc compatibility**
+- <https://github.com/webxdc/website/blob/main/src-docs/faq/compat.md>
+- `docs/README.md`
+- `docs/SHADCN_SVELTE.md`
+
+## Required constraints
+
+- Do not use `document.cookie`; use `localStorage`.
+- Do not rely on `unload`, `beforeunload`, `pagehide`; use `visibilitychange`.
+- Do not rely on `<title>` or `document.title`; app title comes from `manifest.toml`.
+- Do not use external links as essential UX flow; use embedded content or `mailto:` where needed.
+- Do not use `data:` links as download mechanism; use `sendToChat()`.
+- Avoid permission-dependent APIs unless host support is confirmed.
+- Do not rely on `window.open()`, `alert()`, `prompt()`, `confirm()`.
+- Prefer compatibility-safe JS; if using newer syntax/APIs, ensure transpilation/compatibility.
+
+## Svelte/SvelteKit guidance
+
+- Use Svelte 5 patterns used by this project (`$state`, `$props`, `$derived`).
+- Keep shared logic in `src/lib/*` when practical.
+- Preserve static build compatibility for webxdc (`adapter-static`, relative paths).
+
+## shadcn-svelte guidance
+
+- This project is based on shadcn-svelte:
+  - https://shadcn-svelte.com
+- Add components using:
+  - `bun x shadcn-svelte@latest add <component>`
+  - example: `bun x shadcn-svelte@latest add card`
+- Component catalog:
+  - https://shadcn-svelte.com/docs/components
+- Prefer reusable components in `src/lib/components/ui/*`.
+- Use existing `Button` and `Input` components where applicable.
+- For any new UI component:
+  - add `src/lib/components/ui/<name>/<name>.svelte`
+  - add `src/lib/components/ui/<name>/index.ts`
+- Update `docs/SHADCN_SVELTE.md` when adding/changing components.
+
+## Example integrity requirements
+
+Do not break the built-in demos in `src/routes/+page.svelte`:
+
+- shared-state updates
+- notify/reply-by-address flow
+- `sendToChat()` examples (text + file)
+- `importFiles()` example
+- realtime native + emulation
+- `@webxdc/realtime` helper example
+
+## Build and quality gates
+
+Before completing changes, run:
+
+- `bun run check`
+- `bun run build`
+
+For packaging/release changes, also run:
+
+- `bun run package:release`
+
+## Release/versioning constraints
+
+- Keep semantic-release config and CI flow functional.
+- Preserve artifact names:
+  - `webxdc-svelte-shadcn-template_vX-Y-Z.xdc`
+  - `webxdc-svelte-shadcn-template_vX-Y-Z.zip`
+- Keep `.xdc` package excluding `webxdc.js`.
+
+## Conventional commits
+
+Use conventional commits (required for semantic-release):
+
+- `feat: ...`
+- `fix: ...`
+- `docs: ...`
+- `refactor: ...`
+- `chore: ...`
+
+Use `BREAKING CHANGE:` footer for major bumps.

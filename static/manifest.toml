@@ -1,0 +1,4 @@
+name = "Svelte Shadcn webxdc"
+description = "Starter template for building webxdc apps with Svelte 5 and Tailwind."
+source_code_url = "https://github.com/your-org/webxdc-svelte-shadcn-template"
+icon = "icon.png"

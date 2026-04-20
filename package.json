@@ -1,0 +1,44 @@
+{
+	"name": "webxdc-svelte-shadcn-template",
+	"private": true,
+	"version": "0.0.1",
+	"type": "module",
+	"scripts": {
+		"dev": "concurrently -k \"bun run dev:web\" \"bun run dev:webxdc\"",
+		"dev:web": "vite dev --port ${VITE_DEV_PORT:-5173} --strictPort",
+		"dev:webxdc": "webxdc-dev run --port ${WEBXDC_DEV_PORT:-7100} http://localhost:${VITE_DEV_PORT:-5173}",
+		"build": "vite build",
+		"build:xdc": "bun run build && rm -rf dist && mkdir -p dist && (cd build && zip -r ../dist/webxdc-svelte-shadcn-template.xdc . -x \"webxdc.js\")",
+		"package:release": "bun run build && mkdir -p dist && VERSION_DASH=$(bun -e \"console.log(require('./package.json').version.replace(/\\\\./g, '-'))\") && rm -f \"dist/webxdc-svelte-shadcn-template_v${VERSION_DASH}.xdc\" \"dist/webxdc-svelte-shadcn-template_v${VERSION_DASH}.zip\" && (cd build && zip -r \"../dist/webxdc-svelte-shadcn-template_v${VERSION_DASH}.xdc\" . -x \"webxdc.js\" && zip -r \"../dist/webxdc-svelte-shadcn-template_v${VERSION_DASH}.zip\" .)",
+		"preview": "vite preview",
+		"prepare": "svelte-kit sync || echo ''",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
+	},
+	"devDependencies": {
+		"@resvg/resvg-js": "^2.6.2",
+		"@semantic-release/changelog": "^6.0.3",
+		"@semantic-release/commit-analyzer": "^13.0.1",
+		"@semantic-release/exec": "^7.1.0",
+		"@semantic-release/git": "^10.0.1",
+		"@semantic-release/github": "^11.0.1",
+		"@semantic-release/release-notes-generator": "^14.1.0",
+		"@sveltejs/adapter-static": "^3.0.8",
+		"@sveltejs/kit": "^2.57.0",
+		"@sveltejs/vite-plugin-svelte": "^7.0.0",
+		"@tailwindcss/forms": "^0.5.11",
+		"@tailwindcss/typography": "^0.5.19",
+		"@tailwindcss/vite": "^4.2.2",
+		"concurrently": "^9.2.1",
+		"semantic-release": "^25.0.2",
+		"svelte": "^5.55.2",
+		"svelte-check": "^4.4.6",
+		"tailwindcss": "^4.2.2",
+		"typescript": "^6.0.2",
+		"vite": "^8.0.7",
+		"webxdc-dev": "^0.17.0"
+	},
+	"dependencies": {
+		"@webxdc/realtime": "^0.2.2"
+	}
+}
